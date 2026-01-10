@@ -34,9 +34,12 @@ func main() {
 		log.Fatalf("migrate: %v", err)
 	}
 
-	observabilityOptions := observability.SelectFromEnv()
+	ginMws, netHTTPMws := observability.HTTPMiddlewaresFromHTTPDriverEnv()
 
-	httpRuntime, err := httpruntime.SelectFromEnv(observabilityOptions...)
+	httpRuntime, err := httpruntime.SelectFromEnv(
+		httpruntime.WithGinMiddlewares(ginMws...),
+		httpruntime.WithNetHTTPMiddlewares(netHTTPMws...),
+	)
 	if err != nil {
 		log.Fatalf("http init: %v", err)
 	}

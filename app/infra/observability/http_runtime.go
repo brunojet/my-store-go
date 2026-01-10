@@ -4,32 +4,8 @@ import (
 	"os"
 	"strings"
 
-	httpruntime "github.com/brunojet/my-store-go/app/infra/http"
+	"github.com/brunojet/my-store-go/app/infra/observability/contracts"
 )
-
-// HTTPRuntimeOptions builds httpruntime options (middlewares) for the given driver.
-//
-// driver is expected to be normalized (trimmed/lowercased). Unknown/empty defaults to "gin".
-func HTTPRuntimeOptions(driver string, cfg Config) []httpruntime.Option {
-	driver = strings.TrimSpace(strings.ToLower(driver))
-
-	switch driver {
-	case "chi":
-		return []httpruntime.Option{
-			httpruntime.WithNetHTTPMiddlewares(NetHTTPMiddlewares(cfg)...),
-		}
-	default:
-		return []httpruntime.Option{
-			httpruntime.WithGinMiddlewares(GinMiddlewares(cfg)...),
-		}
-	}
-}
-
-// HTTPRuntimeOptionsFromEnv is a convenience helper that reads the observability config
-// from env and builds the runtime options for the given driver.
-func HTTPRuntimeOptionsFromEnv(driver string) []httpruntime.Option {
-	return HTTPRuntimeOptions(driver, ConfigFromEnv())
-}
 
 // HTTPDriverFromEnv returns the normalized HTTP driver selection from env.
 //
@@ -39,7 +15,28 @@ func HTTPDriverFromEnv() string {
 	return strings.TrimSpace(strings.ToLower(os.Getenv("HTTP_DRIVER")))
 }
 
-// SelectFromEnv builds runtime options using HTTP_DRIVER and observability env.
-func SelectFromEnv() []httpruntime.Option {
-	return HTTPRuntimeOptions(HTTPDriverFromEnv(), ConfigFromEnv())
+// HTTPMiddlewares returns the configured middleware chain for the given driver.
+//
+// driver is expected to be normalized (trimmed/lowercased). Unknown/empty defaults to "gin".
+func HTTPMiddlewares(driver string, cfg Config) (gin []contracts.GinMiddleware, nethttp []contracts.NetHTTPMiddleware) {
+	driver = strings.TrimSpace(strings.ToLower(driver))
+
+	switch driver {
+	case "chi":
+		return nil, NetHTTPMiddlewares(cfg)
+	default:
+		return GinMiddlewares(cfg), nil
+	}
+}
+
+// HTTPMiddlewaresFromEnv reads observability config from env and builds middleware chain
+// for the given driver.
+func HTTPMiddlewaresFromEnv(driver string) (gin []contracts.GinMiddleware, nethttp []contracts.NetHTTPMiddleware) {
+	return HTTPMiddlewares(driver, ConfigFromEnv())
+}
+
+// HTTPMiddlewaresFromHTTPDriverEnv reads HTTP_DRIVER and observability config from env
+// and builds middleware chain for the selected driver.
+func HTTPMiddlewaresFromHTTPDriverEnv() (gin []contracts.GinMiddleware, nethttp []contracts.NetHTTPMiddleware) {
+	return HTTPMiddlewares(HTTPDriverFromEnv(), ConfigFromEnv())
 }
