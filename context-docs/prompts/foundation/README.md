@@ -16,3 +16,4 @@ Este diretório contém prompts base para montar o **chassis/esqueleto** do proj
 ## Arquivos
 
 - `01-chassis-go-project.md`: prompt principal para gerar o esqueleto do projeto.
+- `02-apps-api-end-to-end-gin-gorm-sqlite-memory.md`: prompt para implementar CRUD de aplicativos end-to-end (HTTP → service → repo → SQLite in-memory via GORM) com adapter desacoplado.
