@@ -3,7 +3,6 @@ package http
 import (
 	"fmt"
 	stdhttp "net/http"
-	"os"
 	"strings"
 
 	ginadapter "github.com/brunojet/my-store-go/app/infra/http/adapters/gin"
@@ -86,7 +85,15 @@ func NewChi(opts ...Option) *HttpRuntime {
 // Env:
 //   - HTTP_DRIVER: defaults to "gin". Supported: "gin", "chi".
 func SelectFromEnv(opts ...Option) (*HttpRuntime, error) {
-	driver := strings.TrimSpace(strings.ToLower(os.Getenv("HTTP_DRIVER")))
+	cfg := ConfigFromEnv()
+	return Select(cfg.Driver, opts...)
+}
+
+// Select initializes an HTTP runtime based on the given driver.
+//
+// Supported: "gin" (default), "chi".
+func Select(driver string, opts ...Option) (*HttpRuntime, error) {
+	driver = strings.TrimSpace(strings.ToLower(driver))
 	switch driver {
 	case "", "gin":
 		return NewGin(opts...), nil

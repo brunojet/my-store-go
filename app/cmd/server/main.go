@@ -3,19 +3,23 @@ package main
 import (
 	"log"
 	"net/http"
-	"os"
-	"time"
 
 	core "github.com/brunojet/my-store-go/app/core"
 	httpruntime "github.com/brunojet/my-store-go/app/infra/http"
 	"github.com/brunojet/my-store-go/app/infra/http/contracts"
 	"github.com/brunojet/my-store-go/app/infra/observability"
 	"github.com/brunojet/my-store-go/app/infra/persistence"
+	server "github.com/brunojet/my-store-go/app/infra/server"
 	storeprovider "github.com/brunojet/my-store-go/app/store-provider"
 )
 
 func main() {
-	conn, err := persistence.SelectFromEnv()
+	serverCfg := server.ConfigFromEnv()
+	httpCfg := httpruntime.ConfigFromEnv()
+	obsCfg := observability.ConfigFromEnv()
+	persistCfg := persistence.ConfigFromEnv()
+
+	conn, err := persistence.Select(persistCfg)
 	if err != nil {
 		log.Fatalf("open db: %v", err)
 	}
@@ -34,10 +38,8 @@ func main() {
 		log.Fatalf("migrate: %v", err)
 	}
 
-	obs := observability.SelectFromEnv()
-	mws := obs.GetHttpMiddlewares()
-
-	httpRuntime, err := httpruntime.SelectFromEnv(httpruntime.WithMiddlewares(mws))
+	mws := observability.HTTPMiddlewares(httpCfg.Driver, obsCfg)
+	httpRuntime, err := httpruntime.Select(httpCfg.Driver, httpruntime.WithMiddlewares(mws))
 
 	if err != nil {
 		log.Fatalf("http init: %v", err)
@@ -49,16 +51,11 @@ func main() {
 
 	storeprovider.Register(httpRuntime.Router, db)
 
-	addr := ":8080"
-	if port := os.Getenv("PORT"); port != "" {
-		addr = ":" + port
-	}
-
 	srv := &http.Server{
-		Addr:              addr,
+		Addr:              serverCfg.Addr,
 		Handler:           httpRuntime.Handler,
-		ReadHeaderTimeout: 5 * time.Second,
+		ReadHeaderTimeout: serverCfg.ReadHeaderTimeout,
 	}
-	log.Printf("server listening on %s", addr)
+	log.Printf("server listening on %s", serverCfg.Addr)
 	log.Fatal(srv.ListenAndServe())
 }

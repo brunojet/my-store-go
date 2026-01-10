@@ -2,11 +2,15 @@ package sqlite
 
 import (
 	"database/sql"
+	"os"
+	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/brunojet/my-store-go/app/infra/persistence/contracts"
-	"github.com/glebarez/sqlite"
+	gormsqlite "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	_ "modernc.org/sqlite"
 )
 
 const defaultInMemoryDSN = "file::memory:?cache=shared"
@@ -33,12 +37,14 @@ func (c *Connector) Open() (*gorm.DB, error) {
 		return c.gorm, nil
 	}
 
-	dsn := c.DSN
-	if dsn == "" {
-		dsn = defaultInMemoryDSN
+	dsn, pathForDir, okPath := normalizeDSN(c.DSN)
+	if okPath {
+		if err := ensureDirForPath(pathForDir); err != nil {
+			return nil, err
+		}
 	}
 
-	gormDB, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{})
+	gormDB, err := gorm.Open(gormsqlite.Dialector{DriverName: "sqlite", DSN: dsn}, &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
@@ -74,4 +80,37 @@ func (c *Connector) Close() error {
 	c.sqlDB = nil
 	c.gorm = nil
 	return err
+}
+
+func normalizeDSN(raw string) (dsn string, pathForDir string, okPath bool) {
+	v := strings.TrimSpace(raw)
+	if v == "" {
+		return defaultInMemoryDSN, "", false
+	}
+
+	vl := strings.ToLower(v)
+	if vl == ":memory:" || vl == "memory" || vl == "mem" || vl == "inmemory" || vl == "in-memory" {
+		return defaultInMemoryDSN, "", false
+	}
+
+	// File URIs and explicit memory modes are passed through.
+	if strings.HasPrefix(vl, "file:") || strings.Contains(vl, "mode=memory") {
+		return v, "", false
+	}
+
+	base, _, cut := strings.Cut(v, "?")
+	if cut {
+		// Still a path, but without query params for dir creation.
+		return v, base, true
+	}
+	return v, v, true
+}
+
+func ensureDirForPath(path string) error {
+	// If path is relative or absolute, ensure its parent directory exists.
+	dir := filepath.Dir(path)
+	if dir == "." || dir == "" {
+		return nil
+	}
+	return os.MkdirAll(dir, 0o755)
 }

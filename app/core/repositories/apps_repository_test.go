@@ -5,14 +5,15 @@ import (
 	"testing"
 
 	"github.com/brunojet/my-store-go/app/core/models"
-	"github.com/glebarez/sqlite"
+	gormsqlite "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	_ "modernc.org/sqlite"
 )
 
 func TestAppsRepository_CRUDAndPatch(t *testing.T) {
 	ctx := context.Background()
 
-	gormDB, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
+	gormDB, err := gorm.Open(gormsqlite.Dialector{DriverName: "sqlite", DSN: "file::memory:?cache=shared"}, &gorm.Config{})
 	if err != nil {
 		t.Fatalf("open sqlite: %v", err)
 	}
