@@ -1,8 +1,8 @@
-package interfaces
+package contracts
 
 import "gorm.io/gorm"
 
-type ConnectorInterface interface {
+type DatabaseConnector interface {
 	Open() (*gorm.DB, error)
 	Close() error
 }

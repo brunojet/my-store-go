@@ -1,14 +1,14 @@
-package host
+package http
 
 import (
 	"fmt"
-	"net/http"
+	stdhttp "net/http"
 	"os"
 	"strings"
 
+	ginadapter "github.com/brunojet/my-store-go/app/infra/http/adapters/gin"
+	"github.com/brunojet/my-store-go/app/infra/http/adapters/nethttp"
 	"github.com/brunojet/my-store-go/app/infra/http/contracts"
-	ginadapter "github.com/brunojet/my-store-go/app/infra/http/gin"
-	"github.com/brunojet/my-store-go/app/infra/http/nethttp"
 	"github.com/brunojet/my-store-go/app/infra/observability/ginmw"
 	"github.com/brunojet/my-store-go/app/infra/observability/httpmw"
 	infrotel "github.com/brunojet/my-store-go/app/infra/observability/telemetry"
@@ -16,14 +16,14 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-// Runtime wires an HTTP framework into a framework-agnostic Router contract.
+// HttpRuntime wires an HTTP framework into a framework-agnostic Router contract.
 //
 // Router is where modules register routes. Handler is what net/http servers serve.
 //
 // This package is infra: it owns framework selection/initialization.
-type Runtime struct {
+type HttpRuntime struct {
 	Router  contracts.Router
-	Handler http.Handler
+	Handler stdhttp.Handler
 }
 
 type ObservabilityConfig struct {
@@ -32,12 +32,12 @@ type ObservabilityConfig struct {
 	Recovery  bool
 }
 
-type RuntimeConfig struct {
+type HttpRuntimeConfig struct {
 	Observability ObservabilityConfig
 }
 
-func defaultRuntimeConfig() RuntimeConfig {
-	return RuntimeConfig{
+func defaultRuntimeConfig() HttpRuntimeConfig {
+	return HttpRuntimeConfig{
 		Observability: ObservabilityConfig{
 			RequestID: true,
 			Telemetry: true,
@@ -75,7 +75,7 @@ func envBool(name string, def bool) bool {
 //   - OBS_REQUEST_ID=true
 //   - OBS_TELEMETRY=true (alias: OBS_ACCESS_LOG)
 //   - OBS_RECOVERY=true
-func ConfigFromEnv() RuntimeConfig {
+func ConfigFromEnv() HttpRuntimeConfig {
 	cfg := defaultRuntimeConfig()
 	cfg.Observability.RequestID = envBool("OBS_REQUEST_ID", cfg.Observability.RequestID)
 
@@ -92,7 +92,7 @@ func ConfigFromEnv() RuntimeConfig {
 }
 
 // NewGin configures the Gin runtime from the provided config.
-func NewGin(cfg RuntimeConfig) *Runtime {
+func NewGin(cfg HttpRuntimeConfig) *HttpRuntime {
 	tel := infrotel.NewStdProvider()
 	var mws []gin.HandlerFunc
 	if cfg.Observability.RequestID {
@@ -106,16 +106,13 @@ func NewGin(cfg RuntimeConfig) *Runtime {
 	}
 
 	router, handler := ginadapter.NewRuntime(ginadapter.WithMiddlewares(mws...))
-	return &Runtime{
-		Router:  router,
-		Handler: handler,
-	}
+	return &HttpRuntime{Router: router, Handler: handler}
 }
 
 // NewChi configures the chi (net/http) runtime from the provided config.
-func NewChi(cfg RuntimeConfig) *Runtime {
+func NewChi(cfg HttpRuntimeConfig) *HttpRuntime {
 	tel := infrotel.NewStdProvider()
-	var mws []func(http.Handler) http.Handler
+	var mws []func(stdhttp.Handler) stdhttp.Handler
 	if cfg.Observability.RequestID {
 		mws = append(mws, httpmw.RequestID)
 	}
@@ -127,23 +124,20 @@ func NewChi(cfg RuntimeConfig) *Runtime {
 	}
 
 	router, handler := nethttp.NewRuntime(nethttp.WithMiddlewares(mws...))
-	return &Runtime{
-		Router:  router,
-		Handler: handler,
-	}
+	return &HttpRuntime{Router: router, Handler: handler}
 }
 
 // SelectFromEnv selects and initializes an HTTP framework based on env.
 //
 // Env:
 //   - HTTP_DRIVER: defaults to "gin". Supported: "gin", "chi".
-func SelectFromEnv() (*Runtime, error) {
+func SelectFromEnv() (*HttpRuntime, error) {
 	cfg := ConfigFromEnv()
 	driver := strings.TrimSpace(strings.ToLower(os.Getenv("HTTP_DRIVER")))
-	if driver == "" || driver == "gin" {
+	switch driver {
+	case "", "gin":
 		return NewGin(cfg), nil
-	}
-	if driver == "chi" {
+	case "chi":
 		return NewChi(cfg), nil
 	}
 	return nil, fmt.Errorf("unsupported HTTP_DRIVER %q", driver)

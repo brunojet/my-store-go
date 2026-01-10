@@ -1,3 +1,3 @@
-package base
+package ports
 
 type DTO interface{}

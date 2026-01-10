@@ -1,15 +1,17 @@
-package sqlite
+package mysql
 
 import (
 	"database/sql"
+	"errors"
 	"sync"
+	"time"
 
-	"github.com/brunojet/my-store-go/app/infra/persistence/interfaces"
-	"github.com/glebarez/sqlite"
+	"github.com/brunojet/my-store-go/app/infra/persistence/contracts"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
-const defaultInMemoryDSN = "file::memory:?cache=shared"
+var ErrMissingDSN = errors.New("DB_DSN is required for mysql")
 
 type Connector struct {
 	DSN string
@@ -19,7 +21,7 @@ type Connector struct {
 	sqlDB *sql.DB
 }
 
-var _ interfaces.ConnectorInterface = (*Connector)(nil)
+var _ contracts.DatabaseConnector = (*Connector)(nil)
 
 func New(dsn string) *Connector {
 	return &Connector{DSN: dsn}
@@ -33,12 +35,11 @@ func (c *Connector) Open() (*gorm.DB, error) {
 		return c.gorm, nil
 	}
 
-	dsn := c.DSN
-	if dsn == "" {
-		dsn = defaultInMemoryDSN
+	if c.DSN == "" {
+		return nil, ErrMissingDSN
 	}
 
-	gormDB, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{})
+	gormDB, err := gorm.Open(mysql.Open(c.DSN), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
@@ -48,9 +49,10 @@ func (c *Connector) Open() (*gorm.DB, error) {
 		return nil, err
 	}
 
-	// SQLite works best with a single open connection.
-	sqlDB.SetMaxOpenConns(1)
-	sqlDB.SetMaxIdleConns(1)
+	// Reasonable defaults for MySQL.
+	sqlDB.SetMaxOpenConns(10)
+	sqlDB.SetMaxIdleConns(5)
+	sqlDB.SetConnMaxLifetime(1 * time.Hour)
 
 	c.gorm = gormDB
 	c.sqlDB = sqlDB

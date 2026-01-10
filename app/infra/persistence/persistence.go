@@ -5,9 +5,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/brunojet/my-store-go/app/infra/persistence/interfaces"
-	mysqlp "github.com/brunojet/my-store-go/app/infra/persistence/mysql"
-	sqlitep "github.com/brunojet/my-store-go/app/infra/persistence/sqlite"
+	mysqlp "github.com/brunojet/my-store-go/app/infra/persistence/adapters/mysql"
+	sqlitep "github.com/brunojet/my-store-go/app/infra/persistence/adapters/sqlite"
+	"github.com/brunojet/my-store-go/app/infra/persistence/contracts"
 )
 
 // SelectFromEnv selects a DB connector implementation based on environment variables.
@@ -17,7 +17,7 @@ import (
 //   - DB_DSN: driver-specific DSN
 //
 // The returned connector is NOT opened yet; call Open() and defer Close() in main.
-func SelectFromEnv() (interfaces.ConnectorInterface, error) {
+func SelectFromEnv() (contracts.DatabaseConnector, error) {
 	driver := strings.TrimSpace(os.Getenv("DB_DRIVER"))
 	if driver == "" {
 		driver = "sqlite"

@@ -7,8 +7,8 @@ import (
 	"time"
 
 	core "github.com/brunojet/my-store-go/app/core"
+	httpruntime "github.com/brunojet/my-store-go/app/infra/http"
 	"github.com/brunojet/my-store-go/app/infra/http/contracts"
-	"github.com/brunojet/my-store-go/app/infra/http/host"
 	"github.com/brunojet/my-store-go/app/infra/persistence"
 	storeprovider "github.com/brunojet/my-store-go/app/store-provider"
 )
@@ -33,7 +33,7 @@ func main() {
 		log.Fatalf("migrate: %v", err)
 	}
 
-	httpRuntime, err := host.SelectFromEnv()
+	httpRuntime, err := httpruntime.SelectFromEnv()
 	if err != nil {
 		log.Fatalf("http init: %v", err)
 	}

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/brunojet/my-store-go/app/core/models"
-	"github.com/brunojet/my-store-go/app/core/repositories/base"
+	"github.com/brunojet/my-store-go/app/core/repositories/ports"
 	"gorm.io/gorm"
 )
 
@@ -14,11 +14,11 @@ import (
 //   - Get/Patch return (nil, nil) when the record does not exist.
 //   - Delete is idempotent.
 type Repository interface {
-	base.CRUDRepository[models.App]
+	ports.CRUDRepository[models.App]
 }
 
 type appsRepository struct {
-	crud *base.GormCRUDRepository[models.App]
+	crud *ports.GormCRUDRepository[models.App]
 }
 
 func New(db *gorm.DB) Repository {
@@ -27,7 +27,7 @@ func New(db *gorm.DB) Repository {
 
 func NewAppsRepository(db *gorm.DB) Repository {
 	return &appsRepository{
-		crud: base.NewGormCRUDRepository[models.App](db),
+		crud: ports.NewGormCRUDRepository[models.App](db),
 	}
 }
 
