@@ -3,10 +3,10 @@ package routers
 import (
 	"github.com/brunojet/my-store-go/app/infra/http/contracts"
 	"github.com/brunojet/my-store-go/app/store-provider/handlers"
-	appsservice "github.com/brunojet/my-store-go/app/store-provider/services/apps"
+	"github.com/brunojet/my-store-go/app/store-provider/services"
 )
 
-func RegisterAppsRoutes(r contracts.Router, svc *appsservice.Service) {
+func RegisterAppsRoutes(r contracts.Router, svc *services.AppsService) {
 	h := handlers.NewAppsHandler(svc)
 
 	r.GET("/apps", h.List)

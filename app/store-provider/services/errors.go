@@ -1,4 +1,4 @@
-package apps
+package services
 
 import "errors"
 

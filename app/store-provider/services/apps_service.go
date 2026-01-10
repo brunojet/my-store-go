@@ -1,4 +1,4 @@
-package apps
+package services
 
 import (
 	"context"
@@ -9,19 +9,19 @@ import (
 	appsrepo "github.com/brunojet/my-store-go/app/core/repositories"
 )
 
-type Service struct {
+type AppsService struct {
 	repo appsrepo.Repository
 }
 
-func NewService(repo appsrepo.Repository) *Service {
-	return &Service{repo: repo}
+func NewService(repo appsrepo.Repository) *AppsService {
+	return &AppsService{repo: repo}
 }
 
-func (s *Service) List(ctx context.Context) ([]models.App, error) {
+func (s *AppsService) List(ctx context.Context) ([]models.App, error) {
 	return s.repo.List(ctx)
 }
 
-func (s *Service) Get(ctx context.Context, id uint) (*models.App, error) {
+func (s *AppsService) Get(ctx context.Context, id uint) (*models.App, error) {
 	a, err := s.repo.Get(ctx, id)
 	if err != nil {
 		return nil, err
@@ -32,7 +32,7 @@ func (s *Service) Get(ctx context.Context, id uint) (*models.App, error) {
 	return a, nil
 }
 
-func (s *Service) Create(ctx context.Context, req dtos.CreateAppRequest) (*models.App, error) {
+func (s *AppsService) Create(ctx context.Context, req dtos.CreateAppRequest) (*models.App, error) {
 	nome := strings.TrimSpace(req.Nome)
 	codigo := strings.TrimSpace(req.CodigoParceiroExterno)
 	if nome == "" || codigo == "" {
@@ -47,7 +47,7 @@ func (s *Service) Create(ctx context.Context, req dtos.CreateAppRequest) (*model
 	return s.repo.Create(ctx, a)
 }
 
-func (s *Service) Patch(ctx context.Context, id uint, req dtos.PatchAppRequest) (*models.App, error) {
+func (s *AppsService) Patch(ctx context.Context, id uint, req dtos.PatchAppRequest) (*models.App, error) {
 	if req.Nome == nil && req.Descricao == nil && req.CodigoParceiroExterno == nil {
 		return nil, ErrValidation
 	}
@@ -83,6 +83,6 @@ func (s *Service) Patch(ctx context.Context, id uint, req dtos.PatchAppRequest) 
 	return a, nil
 }
 
-func (s *Service) Delete(ctx context.Context, id uint) error {
+func (s *AppsService) Delete(ctx context.Context, id uint) error {
 	return s.repo.Delete(ctx, id)
 }
