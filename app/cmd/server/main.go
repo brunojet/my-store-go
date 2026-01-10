@@ -6,16 +6,15 @@ import (
 	"os"
 	"time"
 
-	coremodels "github.com/brunojet/my-store-go/app/core/models"
-	appsrepo "github.com/brunojet/my-store-go/app/core/repositories"
+	core "github.com/brunojet/my-store-go/app/core"
+	"github.com/brunojet/my-store-go/app/infra/http/contracts"
+	"github.com/brunojet/my-store-go/app/infra/http/host"
 	"github.com/brunojet/my-store-go/app/infra/persistence"
-	appsrouters "github.com/brunojet/my-store-go/app/store-provider/routers"
-	appsservice "github.com/brunojet/my-store-go/app/store-provider/services/apps"
-	"github.com/gin-gonic/gin"
+	storeprovider "github.com/brunojet/my-store-go/app/store-provider"
 )
 
 func main() {
-	conn, err := persistence.SelectConnectorFromEnv()
+	conn, err := persistence.SelectFromEnv()
 	if err != nil {
 		log.Fatalf("open db: %v", err)
 	}
@@ -30,21 +29,20 @@ func main() {
 		}
 	}()
 
-	if err := db.AutoMigrate(coremodels.MigratableModels()...); err != nil {
+	if err := core.Register(db); err != nil {
 		log.Fatalf("migrate: %v", err)
 	}
 
-	appsSvc := appsservice.NewService(appsrepo.New(db))
+	httpRuntime, err := host.SelectFromEnv()
+	if err != nil {
+		log.Fatalf("http init: %v", err)
+	}
 
-	r := gin.New()
-	r.Use(gin.Logger(), gin.Recovery())
-
-	r.GET("/health", func(c *gin.Context) {
+	httpRuntime.Router.GET("/health", func(c contracts.Context) {
 		c.String(200, "ok")
 	})
 
-	v1 := r.Group("/v1")
-	appsrouters.RegisterAppsRoutes(v1, appsSvc)
+	storeprovider.Register(httpRuntime.Router, db)
 
 	addr := ":8080"
 	if port := os.Getenv("PORT"); port != "" {
@@ -53,7 +51,7 @@ func main() {
 
 	srv := &http.Server{
 		Addr:              addr,
-		Handler:           r,
+		Handler:           httpRuntime.Handler,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 	log.Printf("server listening on %s", addr)

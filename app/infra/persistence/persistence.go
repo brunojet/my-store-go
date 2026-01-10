@@ -10,14 +10,14 @@ import (
 	sqlitep "github.com/brunojet/my-store-go/app/infra/persistence/sqlite"
 )
 
-// SelectConnectorFromEnv selects a DB connector implementation based on environment variables.
+// SelectFromEnv selects a DB connector implementation based on environment variables.
 //
 // Supported:
 //   - DB_DRIVER: "sqlite" (default) | "mysql"
 //   - DB_DSN: driver-specific DSN
 //
 // The returned connector is NOT opened yet; call Open() and defer Close() in main.
-func SelectConnectorFromEnv() (interfaces.ConnectorInterface, error) {
+func SelectFromEnv() (interfaces.ConnectorInterface, error) {
 	driver := strings.TrimSpace(os.Getenv("DB_DRIVER"))
 	if driver == "" {
 		driver = "sqlite"
@@ -34,10 +34,4 @@ func SelectConnectorFromEnv() (interfaces.ConnectorInterface, error) {
 	default:
 		return nil, fmt.Errorf("unsupported DB_DRIVER %q", driver)
 	}
-}
-
-// ConnectFromEnv is kept for compatibility, but it does not actually connect.
-// Prefer SelectConnectorFromEnv.
-func ConnectFromEnv() (interfaces.ConnectorInterface, error) {
-	return SelectConnectorFromEnv()
 }

@@ -1,13 +1,14 @@
 package routers
 
 import (
+	coretel "github.com/brunojet/my-store-go/app/core/telemetry"
+	"github.com/brunojet/my-store-go/app/infra/http/contracts"
 	"github.com/brunojet/my-store-go/app/store-provider/handlers"
 	appsservice "github.com/brunojet/my-store-go/app/store-provider/services/apps"
-	"github.com/gin-gonic/gin"
 )
 
-func RegisterAppsRoutes(r gin.IRoutes, svc *appsservice.Service) {
-	h := handlers.NewAppsHandler(svc)
+func RegisterAppsRoutes(r contracts.Router, svc *appsservice.Service, tel coretel.Provider) {
+	h := handlers.NewAppsHandler(svc, tel)
 
 	r.GET("/apps", h.List)
 	r.GET("/apps/:id", h.Get)
