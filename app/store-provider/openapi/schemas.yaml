@@ -1,0 +1,116 @@
+components:
+  parameters:
+    AppId:
+      name: id
+      in: path
+      required: true
+      description: Numeric app identifier
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            invalidJson:
+              summary: Invalid JSON
+              value: { "error": "invalid json" }
+            invalidId:
+              summary: Invalid id
+              value: { "error": "invalid id" }
+            validation:
+              summary: Validation error
+              value: { "error": "validation" }
+
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            notFound:
+              value: { "error": "not found" }
+
+    InternalError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            internal:
+              value: { "error": "internal error" }
+
+  schemas:
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required: [error]
+      properties:
+        error:
+          type: string
+
+    CreateAppRequest:
+      type: object
+      additionalProperties: false
+      required: [nome, codigo_parceiro_externo]
+      properties:
+        nome:
+          type: string
+          description: App name
+          minLength: 1
+        descricao:
+          type: string
+          description: Optional description
+        codigo_parceiro_externo:
+          type: string
+          description: External partner code
+          minLength: 1
+
+    PatchAppRequest:
+      type: object
+      additionalProperties: false
+      description: |
+        Partial update payload. At least one property must be provided.
+      minProperties: 1
+      properties:
+        nome:
+          type: string
+          description: App name
+          minLength: 1
+        descricao:
+          type: string
+          description: Optional description
+        codigo_parceiro_externo:
+          type: string
+          description: External partner code
+          minLength: 1
+
+    AppResponse:
+      type: object
+      additionalProperties: false
+      required: [id, nome, descricao, codigo_parceiro_externo, created_at, updated_at]
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+        nome:
+          type: string
+        descricao:
+          type: string
+        codigo_parceiro_externo:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time

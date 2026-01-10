@@ -48,6 +48,20 @@ func WithMiddlewares(mw obscontracts.HTTPMiddlewares) Option {
 	}
 }
 
+// WithCORS enables CORS and handles preflight OPTIONS requests.
+//
+// This is framework-specific behavior, but exposed as an infra/http option so
+// bootstrap can wire it once regardless of the selected HTTP runtime.
+func WithCORS(cfg contracts.CORSConfig) Option {
+	return func(o *runtimeOptions) {
+		if !cfg.Enabled {
+			return
+		}
+		o.ginMiddlewares = append(o.ginMiddlewares, ginadapter.CORS(cfg))
+		o.netHTTPMiddlewares = append(o.netHTTPMiddlewares, nethttp.CORS(cfg))
+	}
+}
+
 func buildRuntimeOptions(opts ...Option) runtimeOptions {
 	o := defaultRuntimeOptions()
 	for _, opt := range opts {

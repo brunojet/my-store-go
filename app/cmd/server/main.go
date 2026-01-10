@@ -39,7 +39,11 @@ func main() {
 	}
 
 	mws := observability.HTTPMiddlewares(httpCfg.Driver, obsCfg)
-	httpRuntime, err := httpruntime.Select(httpCfg.Driver, httpruntime.WithMiddlewares(mws))
+	httpRuntime, err := httpruntime.Select(
+		httpCfg.Driver,
+		httpruntime.WithMiddlewares(mws),
+		httpruntime.WithCORS(httpCfg.CORS),
+	)
 
 	if err != nil {
 		log.Fatalf("http init: %v", err)
