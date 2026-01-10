@@ -32,6 +32,42 @@ Obs.: quando formos criar o esqueleto no disco, diretórios vazios podem ser man
 
 Basepath da aplicacao: app
 
+## Arquitetura
+
+O projeto começa como um **monólito modular**: uma única aplicação executável, porém organizada em módulos por domínio para manter baixo acoplamento e facilitar uma evolução futura.
+
+### Objetivo
+
+- Manter os módulos de domínio (`store-*`) **auto contidos** (bounded contexts) e evoluíveis de forma independente.
+- Centralizar no `core` tudo que é **comum/reutilizável** entre módulos.
+- Permitir, se necessário no futuro, “quebrar” o monólito em múltiplos backends reaproveitando o `core` como uma biblioteca.
+
+### Papel de cada parte
+
+- `app/cmd/*`: entrypoints (composition root). Aqui a aplicação sobe servidor(es), injeta dependências e registra rotas.
+- `app/core/*`: componente **comum e reutilizável**. Contém:
+  - `models` e `dtos` (podem divergir; conversões explícitas quando necessário)
+  - persistência/storage (hoje em `databases` e `repositories`; pode evoluir para `storage`)
+  - utilitários/abstrações (ex.: interfaces e helpers compartilhados)
+  - healthcheck simples (sem acoplar regras de negócio)
+- `app/store-provider|store-office|store-consumer/*`: módulos de domínio **auto contidos**.
+  - `handlers`: somente abstrações/interfaces e healthcheck do módulo (quando existir)
+  - `services`: casos de uso / regras da aplicação do módulo
+  - `routers`: composição/roteamento do módulo
+
+### Regras de dependência (para manter a modularidade)
+
+- `store-*` pode depender de `core`, mas **`core` não depende de `store-*`**.
+- Evitar comunicação direta entre módulos (`store-A` chamando `store-B`). Quando for necessário, preferir contratos explícitos (interfaces/eventos) no `core`.
+- DTOs não são “o domínio”: quando o contrato da API diferir do modelo, manter o mapeamento explícito (sem “vazar” detalhes de persistência para a API).
+
+### Evolução futura
+
+Se o monólito precisar virar múltiplos backends, a intenção é manter:
+
+- Um projeto (ou módulo) `core` como biblioteca compartilhada
+- Um backend por contexto (`provider`, `office`, `consumer`) consumindo o mesmo `core`
+
 ```text
 core
   databases
