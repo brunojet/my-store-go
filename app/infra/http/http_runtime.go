@@ -9,6 +9,7 @@ import (
 	ginadapter "github.com/brunojet/my-store-go/app/infra/http/adapters/gin"
 	"github.com/brunojet/my-store-go/app/infra/http/adapters/nethttp"
 	"github.com/brunojet/my-store-go/app/infra/http/contracts"
+	obscontracts "github.com/brunojet/my-store-go/app/infra/observability/contracts"
 	"github.com/gin-gonic/gin"
 )
 
@@ -34,6 +35,17 @@ func WithGinMiddlewares(mw ...gin.HandlerFunc) Option {
 func WithNetHTTPMiddlewares(mw ...func(stdhttp.Handler) stdhttp.Handler) Option {
 	return func(o *runtimeOptions) {
 		o.netHTTPMiddlewares = append(o.netHTTPMiddlewares, mw...)
+	}
+}
+
+// WithMiddlewares appends the compatible middleware package.
+//
+// If both are provided, Gin and net/http will both be appended, but the selected
+// runtime will only use the relevant slice.
+func WithMiddlewares(mw obscontracts.HTTPMiddlewares) Option {
+	return func(o *runtimeOptions) {
+		o.ginMiddlewares = append(o.ginMiddlewares, mw.Gin...)
+		o.netHTTPMiddlewares = append(o.netHTTPMiddlewares, mw.NetHTTP...)
 	}
 }
 
