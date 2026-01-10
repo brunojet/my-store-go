@@ -11,6 +11,7 @@ import (
 	"github.com/brunojet/my-store-go/app/infra/http/nethttp"
 	"github.com/brunojet/my-store-go/app/infra/observability/ginmw"
 	"github.com/brunojet/my-store-go/app/infra/observability/httpmw"
+	infrotel "github.com/brunojet/my-store-go/app/infra/observability/telemetry"
 	"github.com/gin-gonic/gin"
 	"github.com/go-chi/chi/v5/middleware"
 )
@@ -27,7 +28,7 @@ type Runtime struct {
 
 type ObservabilityConfig struct {
 	RequestID bool
-	AccessLog bool
+	Telemetry bool
 	Recovery  bool
 }
 
@@ -39,10 +40,18 @@ func defaultRuntimeConfig() RuntimeConfig {
 	return RuntimeConfig{
 		Observability: ObservabilityConfig{
 			RequestID: true,
-			AccessLog: true,
+			Telemetry: true,
 			Recovery:  true,
 		},
 	}
+}
+
+func envString(name string) (string, bool) {
+	v, ok := os.LookupEnv(name)
+	if !ok {
+		return "", false
+	}
+	return strings.TrimSpace(v), true
 }
 
 func envBool(name string, def bool) bool {
@@ -64,24 +73,33 @@ func envBool(name string, def bool) bool {
 //
 // Env (defaults shown):
 //   - OBS_REQUEST_ID=true
-//   - OBS_ACCESS_LOG=true
+//   - OBS_TELEMETRY=true (alias: OBS_ACCESS_LOG)
 //   - OBS_RECOVERY=true
 func ConfigFromEnv() RuntimeConfig {
 	cfg := defaultRuntimeConfig()
 	cfg.Observability.RequestID = envBool("OBS_REQUEST_ID", cfg.Observability.RequestID)
-	cfg.Observability.AccessLog = envBool("OBS_ACCESS_LOG", cfg.Observability.AccessLog)
+
+	// Backward-compatible: OBS_ACCESS_LOG previously controlled request logs.
+	// If OBS_TELEMETRY is explicitly set, it wins.
+	if _, ok := envString("OBS_TELEMETRY"); ok {
+		cfg.Observability.Telemetry = envBool("OBS_TELEMETRY", cfg.Observability.Telemetry)
+	} else {
+		cfg.Observability.Telemetry = envBool("OBS_ACCESS_LOG", cfg.Observability.Telemetry)
+	}
+
 	cfg.Observability.Recovery = envBool("OBS_RECOVERY", cfg.Observability.Recovery)
 	return cfg
 }
 
 // NewGin configures the Gin runtime from the provided config.
 func NewGin(cfg RuntimeConfig) *Runtime {
+	tel := infrotel.NewStdProvider()
 	var mws []gin.HandlerFunc
 	if cfg.Observability.RequestID {
 		mws = append(mws, ginmw.RequestID())
 	}
-	if cfg.Observability.AccessLog {
-		mws = append(mws, ginmw.AccessLog())
+	if cfg.Observability.Telemetry {
+		mws = append(mws, ginmw.Telemetry(tel))
 	}
 	if cfg.Observability.Recovery {
 		mws = append(mws, gin.Recovery())
@@ -96,12 +114,13 @@ func NewGin(cfg RuntimeConfig) *Runtime {
 
 // NewChi configures the chi (net/http) runtime from the provided config.
 func NewChi(cfg RuntimeConfig) *Runtime {
+	tel := infrotel.NewStdProvider()
 	var mws []func(http.Handler) http.Handler
 	if cfg.Observability.RequestID {
 		mws = append(mws, httpmw.RequestID)
 	}
-	if cfg.Observability.AccessLog {
-		mws = append(mws, httpmw.AccessLog)
+	if cfg.Observability.Telemetry {
+		mws = append(mws, httpmw.Telemetry(tel))
 	}
 	if cfg.Observability.Recovery {
 		mws = append(mws, middleware.Recoverer)
