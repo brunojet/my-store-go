@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	httptypes "github.com/brunojet/my-store-go/app/infra/http/types"
+	"github.com/brunojet/my-store-go/app/infra/observability/types"
 )
 
 // ObservabilityParams describes how to build observability middlewares
@@ -12,7 +13,7 @@ type ObservabilityParams struct {
 	// Driver is the HTTP driver (e.g. "gin", "chi").
 	Driver httptypes.HTTPDriver
 	// Config enables/disables features.
-	Config ObservabilityConfig
+	Config types.MiddlewareConfig
 }
 
 // ObservabilityManager owns the computed middleware set for a given driver+config.
@@ -21,14 +22,14 @@ type ObservabilityParams struct {
 type ObservabilityManager struct {
 	Params      ObservabilityParams
 	mu          sync.Mutex
-	middlewares *ObservabilityMiddlewares
+	middlewares *types.Middlewares
 }
 
 func NewObservabilityManager(params ObservabilityParams) *ObservabilityManager {
 	return &ObservabilityManager{Params: params}
 }
 
-func (m *ObservabilityManager) Open() (ObservabilityMiddlewares, error) {
+func (m *ObservabilityManager) Open() (types.Middlewares, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 

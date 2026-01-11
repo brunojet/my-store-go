@@ -1,16 +1,21 @@
 package persistence
 
 import (
+	"errors"
 	"strings"
 	"testing"
 
 	"github.com/brunojet/my-store-go/app/infra/persistence/types"
 )
 
-func TestDatabaseParams_NormalizedDriver_DefaultsToMySQL(t *testing.T) {
+func TestDatabaseParams_BuildDSN_EmptyDriverIsUnsupported(t *testing.T) {
 	p := DatabaseParams{}
-	if got := p.Driver; got != types.DBDriverMySQL {
-		t.Fatalf("expected mysql, got %q", got)
+	_, err := p.BuildDSN()
+	if err == nil {
+		t.Fatalf("expected error")
+	}
+	if !errors.Is(err, ErrUnsupportedDBDriver) {
+		t.Fatalf("expected ErrUnsupportedDBDriver, got %v", err)
 	}
 }
 

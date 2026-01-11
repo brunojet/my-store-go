@@ -1,20 +1,20 @@
 package observability
 
 import (
-	"github.com/brunojet/my-store-go/app/infra/http/types"
 	httptypes "github.com/brunojet/my-store-go/app/infra/http/types"
 	"github.com/brunojet/my-store-go/app/infra/observability/adapters/ginmw"
 	"github.com/brunojet/my-store-go/app/infra/observability/adapters/httpmw"
 	infrotel "github.com/brunojet/my-store-go/app/infra/observability/telemetry"
+	"github.com/brunojet/my-store-go/app/infra/observability/types"
 	"github.com/gin-gonic/gin"
 	"github.com/go-chi/chi/v5/middleware"
 )
 
 // ginMiddlewares returns the configured Gin middleware chain.
-func ginMiddlewares(cfg ObservabilityConfig) []GinMiddleware {
+func ginMiddlewares(cfg types.MiddlewareConfig) []types.GinMiddleware {
 	tel := infrotel.NewStdProvider()
 
-	var mws []GinMiddleware
+	var mws []types.GinMiddleware
 	if cfg.RequestID {
 		mws = append(mws, ginmw.RequestID())
 	}
@@ -28,10 +28,10 @@ func ginMiddlewares(cfg ObservabilityConfig) []GinMiddleware {
 }
 
 // netHTTPMiddlewares returns the configured net/http middleware chain.
-func netHTTPMiddlewares(cfg ObservabilityConfig) []NetHTTPMiddleware {
+func netHTTPMiddlewares(cfg types.MiddlewareConfig) []types.NetHTTPMiddleware {
 	tel := infrotel.NewStdProvider()
 
-	var mws []NetHTTPMiddleware
+	var mws []types.NetHTTPMiddleware
 	if cfg.RequestID {
 		mws = append(mws, httpmw.RequestID)
 	}
@@ -44,11 +44,11 @@ func netHTTPMiddlewares(cfg ObservabilityConfig) []NetHTTPMiddleware {
 	return mws
 }
 
-func BuildMiddlewares(driver types.HTTPDriver, cfg ObservabilityConfig) ObservabilityMiddlewares {
+func BuildMiddlewares(driver httptypes.HTTPDriver, cfg types.MiddlewareConfig) types.Middlewares {
 	switch driver {
 	case httptypes.HTTPDriverChi:
-		return ObservabilityMiddlewares{NetHTTP: netHTTPMiddlewares(cfg)}
+		return types.Middlewares{NetHTTP: netHTTPMiddlewares(cfg)}
 	default:
-		return ObservabilityMiddlewares{Gin: ginMiddlewares(cfg)}
+		return types.Middlewares{Gin: ginMiddlewares(cfg)}
 	}
 }

@@ -10,7 +10,7 @@ import (
 	"github.com/brunojet/my-store-go/app/infra/http/adapters/nethttp"
 	"github.com/brunojet/my-store-go/app/infra/http/contracts"
 	"github.com/brunojet/my-store-go/app/infra/http/types"
-	"github.com/brunojet/my-store-go/app/infra/observability"
+	observabilitytypes "github.com/brunojet/my-store-go/app/infra/observability/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -26,7 +26,7 @@ var ErrMissingRegistrar = errors.New("register enabled but no registrar provided
 type HTTPParams struct {
 	Driver                   types.HTTPDriver
 	CORS                     types.CORSConfig
-	ObservabilityMiddlewares observability.ObservabilityMiddlewares
+	ObservabilityMiddlewares observabilitytypes.Middlewares
 	Register                 bool
 }
 
@@ -51,8 +51,7 @@ type HttpRuntime struct {
 //		return nil
 //	})
 type HTTPManager struct {
-	Params HTTPParams
-
+	Params  HTTPParams
 	mu      sync.Mutex
 	runtime *HttpRuntime
 }
@@ -85,11 +84,11 @@ func (m *HTTPManager) Open() (*HttpRuntime, error) {
 
 func (m *HTTPManager) buildRuntime() (*HttpRuntime, error) {
 	switch m.Params.Driver {
-	case HTTPDriverGin:
+	case types.HTTPDriverGin:
 		mws := m.buildGinMiddlewares()
 		router, handler := ginadapter.NewRuntime(ginadapter.WithMiddlewares(mws...))
 		return &HttpRuntime{Router: router, Handler: handler}, nil
-	case HTTPDriverChi:
+	case types.HTTPDriverChi:
 		mws := m.buildNetHTTPMiddlewares()
 		router, handler := nethttp.NewRuntime(nethttp.WithMiddlewares(mws...))
 		return &HttpRuntime{Router: router, Handler: handler}, nil

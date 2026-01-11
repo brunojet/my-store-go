@@ -18,7 +18,8 @@ var (
 //
 // Notes:
 //   - If DSN is provided, it takes precedence over the other fields.
-//   - If Driver is empty, it defaults to "mysql".
+//   - Driver must be set to a supported value (e.g. "mysql" or "sqlite").
+//     Normalization/defaulting from env strings should happen at the app config layer.
 //   - For sqlite, DSN can be empty to use in-memory.
 //   - For mysql, either DSN must be provided or Host/User/Database must be set.
 //
