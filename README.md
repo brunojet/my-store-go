@@ -61,6 +61,43 @@ O projeto começa como um **monólito modular**: uma única aplicação executá
 - Evitar comunicação direta entre módulos (`store-A` chamando `store-B`). Quando for necessário, preferir contratos explícitos (interfaces/eventos) no `core`.
 - DTOs não são “o domínio”: quando o contrato da API diferir do modelo, manter o mapeamento explícito (sem “vazar” detalhes de persistência para a API).
 
+### Diagrama (visão macro do projeto)
+
+```mermaid
+---
+config:
+  layout: elk
+---
+flowchart TB
+ subgraph Entry["Composition root"]
+    MAIN["cmd/server/main.go"]
+    CFG["cmd/server/config.go"]
+  end
+ subgraph Core["Core"]
+    CORE["app/core"]
+  end
+ subgraph Infra["Infra"]
+    ICFG["infra/config"]
+    ISRV["infra/server"]
+    IHTTP["infra/http"]
+    IOBS["infra/observability"]
+    IDB["infra/persistence"]
+  end
+ subgraph Modules["Módulos de negócio"]
+    PROVIDER["store-provider"]
+    OFFICE["store-office"]
+    CONSUMER["store-consumer"]
+  end
+    CFG --> ICFG
+    MAIN --> CFG & ISRV & IDB & IOBS & IHTTP & CORE
+    MAIN --> PROVIDER
+    Modules -- models, dtos, repos --> CORE
+    IDB --> DB[("Database")]
+    IHTTP --> HTTPH[("net/http Handler")]
+    IOBS -. middlewares .-> IHTTP
+    Modules -. register routes .-> IHTTP
+```
+
 ### Evolução futura
 
 Se o monólito precisar virar múltiplos backends, a intenção é manter:
