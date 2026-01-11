@@ -6,7 +6,7 @@ import (
 	"time"
 
 	cfgcontracts "github.com/brunojet/my-store-go/app/infra/config/contracts"
-	infrahttp "github.com/brunojet/my-store-go/app/infra/http"
+	httptypes "github.com/brunojet/my-store-go/app/infra/http/types"
 	"github.com/brunojet/my-store-go/app/infra/persistence/types"
 )
 
@@ -44,7 +44,7 @@ func TestServerConfigFromSource_Custom(t *testing.T) {
 
 func TestHTTPParamsFromSource_Defaults(t *testing.T) {
 	p := httpParamsFromSource(mapSource{})
-	if p.Driver != infrahttp.HTTPDriverGin {
+	if p.Driver != httptypes.HTTPDriverGin {
 		t.Fatalf("expected gin, got %q", p.Driver)
 	}
 	if !p.Register {
@@ -84,7 +84,7 @@ func TestHTTPParamsFromSource_Overrides(t *testing.T) {
 		"CORS_ALLOW_CREDENTIALS": "true",
 		"CORS_MAX_AGE":           "30s",
 	})
-	if p.Driver != infrahttp.HTTPDriverChi {
+	if p.Driver != httptypes.HTTPDriverChi {
 		t.Fatalf("expected chi, got %q", p.Driver)
 	}
 	if p.CORS.Enabled {

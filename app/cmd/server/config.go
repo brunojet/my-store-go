@@ -9,6 +9,7 @@ import (
 	"github.com/brunojet/my-store-go/app/infra/http"
 	httptypes "github.com/brunojet/my-store-go/app/infra/http/types"
 	"github.com/brunojet/my-store-go/app/infra/observability"
+	obstypes "github.com/brunojet/my-store-go/app/infra/observability/types"
 	"github.com/brunojet/my-store-go/app/infra/persistence"
 	"github.com/brunojet/my-store-go/app/infra/persistence/types"
 	"github.com/brunojet/my-store-go/app/infra/server"
@@ -52,7 +53,7 @@ func serverConfigFromSource(src cfgcontracts.Source) server.ServerParams {
 //   - OBS_ACCESS_LOG (backward-compatible alias for OBS_TELEMETRY)
 //   - OBS_RECOVERY (default: true)
 func observabilityParamsFromSource(src cfgcontracts.Source, httpDriver httptypes.HTTPDriver) observability.ObservabilityParams {
-	cfg := observability.ObservabilityConfig{RequestID: true, Telemetry: true, Recovery: true}
+	cfg := obstypes.MiddlewareConfig{RequestID: true, Telemetry: true, Recovery: true}
 
 	cfg.RequestID = cfgports.Bool(src, "OBS_REQUEST_ID", cfg.RequestID)
 
@@ -90,7 +91,7 @@ func httpParamsFromSource(src cfgcontracts.Source) http.HTTPParams {
 		MaxAge:           cfgports.Duration(src, "CORS_MAX_AGE", 10*time.Minute),
 	}
 
-	driver := http.NormalizeHTTPDriver(cfgports.Trimmed(src, "HTTP_DRIVER"))
+	driver := httptypes.NormalizeHTTPDriver(cfgports.Trimmed(src, "HTTP_DRIVER"))
 
 	return http.HTTPParams{Driver: driver, CORS: cors, Register: true}
 }
