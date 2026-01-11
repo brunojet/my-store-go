@@ -1,6 +1,7 @@
 package observability
 
 import (
+	"github.com/brunojet/my-store-go/app/infra/http/types"
 	httptypes "github.com/brunojet/my-store-go/app/infra/http/types"
 	"github.com/brunojet/my-store-go/app/infra/observability/adapters/ginmw"
 	"github.com/brunojet/my-store-go/app/infra/observability/adapters/httpmw"
@@ -43,10 +44,8 @@ func netHTTPMiddlewares(cfg ObservabilityConfig) []NetHTTPMiddleware {
 	return mws
 }
 
-func BuildMiddlewares(driver string, cfg ObservabilityConfig) ObservabilityMiddlewares {
-	d := httptypes.NormalizeHTTPDriver(driver)
-
-	switch d {
+func BuildMiddlewares(driver types.HTTPDriver, cfg ObservabilityConfig) ObservabilityMiddlewares {
+	switch driver {
 	case httptypes.HTTPDriverChi:
 		return ObservabilityMiddlewares{NetHTTP: netHTTPMiddlewares(cfg)}
 	default:

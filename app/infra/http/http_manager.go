@@ -24,7 +24,7 @@ var ErrMissingRegistrar = errors.New("register enabled but no registrar provided
 // Register is intentionally kept here as a convenience flag for higher-level bootstraps;
 // the actual route registration is performed by HTTPManager via a provided callback.
 type HTTPParams struct {
-	Driver                   HTTPDriver
+	Driver                   types.HTTPDriver
 	CORS                     types.CORSConfig
 	ObservabilityMiddlewares observability.ObservabilityMiddlewares
 	Register                 bool
@@ -84,9 +84,7 @@ func (m *HTTPManager) Open() (*HttpRuntime, error) {
 }
 
 func (m *HTTPManager) buildRuntime() (*HttpRuntime, error) {
-	driver := NormalizeHTTPDriver(string(m.Params.Driver))
-
-	switch driver {
+	switch m.Params.Driver {
 	case HTTPDriverGin:
 		mws := m.buildGinMiddlewares()
 		router, handler := ginadapter.NewRuntime(ginadapter.WithMiddlewares(mws...))
@@ -96,7 +94,7 @@ func (m *HTTPManager) buildRuntime() (*HttpRuntime, error) {
 		router, handler := nethttp.NewRuntime(nethttp.WithMiddlewares(mws...))
 		return &HttpRuntime{Router: router, Handler: handler}, nil
 	default:
-		return nil, fmt.Errorf("unsupported HTTP_DRIVER %q", driver)
+		return nil, fmt.Errorf("unsupported HTTP_DRIVER %q", m.Params.Driver)
 	}
 }
 

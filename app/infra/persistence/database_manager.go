@@ -8,13 +8,14 @@ import (
 	mysqlp "github.com/brunojet/my-store-go/app/infra/persistence/adapters/mysql"
 	sqlitep "github.com/brunojet/my-store-go/app/infra/persistence/adapters/sqlite"
 	"github.com/brunojet/my-store-go/app/infra/persistence/contracts"
+	"github.com/brunojet/my-store-go/app/infra/persistence/types"
 	"gorm.io/gorm"
 )
 
 var ErrMissingMigrator = errors.New("migrate enabled but no migrator provided")
 
 type DatabaseConfig struct {
-	Driver string
+	Driver types.DBDriver
 	DSN    string
 }
 
@@ -26,21 +27,16 @@ func SelectFromParams(params DatabaseParams) (contracts.DatabaseConnector, error
 	if err != nil {
 		return nil, err
 	}
-	return Select(DatabaseConfig{Driver: params.NormalizedDriver(), DSN: dsn})
+	return Select(DatabaseConfig{Driver: params.Driver, DSN: dsn})
 }
 
 func Select(cfg DatabaseConfig) (contracts.DatabaseConnector, error) {
-	driver := strings.TrimSpace(strings.ToLower(cfg.Driver))
-	if driver == "" {
-		driver = "mysql"
-	}
-
 	dsn := strings.TrimSpace(cfg.DSN)
 
-	switch driver {
-	case "sqlite":
+	switch cfg.Driver {
+	case types.DBDriverSQLite:
 		return sqlitep.New(dsn), nil
-	case "mysql":
+	case types.DBDriverMySQL:
 		return mysqlp.New(dsn), nil
 	default:
 		return nil, fmt.Errorf("unsupported DB_DRIVER %q", cfg.Driver)
@@ -52,7 +48,7 @@ func Select(cfg DatabaseConfig) (contracts.DatabaseConnector, error) {
 //
 // Typical usage:
 //
-//	mgr, _ := persistence.NewDatabaseManager(persistence.DatabaseParams{Driver: "sqlite", Migrate: true})
+//	mgr, _ := persistence.NewDatabaseManager(persistence.DatabaseParams{Driver: persistence.DBDriverSQLite, Migrate: true})
 //	db, _ := mgr.OpenAndMigrate(core.Register)
 //	defer mgr.Close()
 type DatabaseManager struct {

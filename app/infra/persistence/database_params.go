@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	mysqlp "github.com/brunojet/my-store-go/app/infra/persistence/adapters/mysql"
+	"github.com/brunojet/my-store-go/app/infra/persistence/types"
 )
 
 var (
@@ -24,7 +25,7 @@ var (
 // Migrate is intentionally kept here as a convenience flag for higher-level bootstraps;
 // the actual migration execution is performed by DatabaseManager via a provided callback.
 type DatabaseParams struct {
-	Driver string
+	Driver types.DBDriver
 
 	// DSN is the driver-specific connection string.
 	DSN string
@@ -44,14 +45,6 @@ type DatabaseParams struct {
 	Migrate bool
 }
 
-func (p DatabaseParams) NormalizedDriver() string {
-	d := strings.TrimSpace(strings.ToLower(p.Driver))
-	if d == "" {
-		return "mysql"
-	}
-	return d
-}
-
 // BuildDSN returns a driver-specific DSN.
 //
 // If p.DSN is non-empty, it is returned as-is.
@@ -60,11 +53,11 @@ func (p DatabaseParams) BuildDSN() (string, error) {
 		return strings.TrimSpace(p.DSN), nil
 	}
 
-	switch p.NormalizedDriver() {
-	case "sqlite":
+	switch p.Driver {
+	case types.DBDriverSQLite:
 		// The sqlite connector already falls back to in-memory when DSN is empty.
 		return "", nil
-	case "mysql":
+	case types.DBDriverMySQL:
 		return p.buildMySQLDSN()
 	default:
 		return "", fmt.Errorf("%w: %q", ErrUnsupportedDBDriver, p.Driver)

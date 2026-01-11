@@ -10,6 +10,7 @@ import (
 	httptypes "github.com/brunojet/my-store-go/app/infra/http/types"
 	"github.com/brunojet/my-store-go/app/infra/observability"
 	"github.com/brunojet/my-store-go/app/infra/persistence"
+	"github.com/brunojet/my-store-go/app/infra/persistence/types"
 	"github.com/brunojet/my-store-go/app/infra/server"
 )
 
@@ -26,7 +27,7 @@ func configFromEnv() appConfig {
 	return appConfig{
 		Server:        serverConfigFromSource(src),
 		HTTP:          httpParams,
-		Observability: observabilityParamsFromSource(src, string(httpParams.Driver)),
+		Observability: observabilityParamsFromSource(src, httpParams.Driver),
 		Database:      databaseParamsFromSource(src),
 	}
 }
@@ -50,7 +51,7 @@ func serverConfigFromSource(src cfgcontracts.Source) server.ServerParams {
 //   - OBS_TELEMETRY (default: true)
 //   - OBS_ACCESS_LOG (backward-compatible alias for OBS_TELEMETRY)
 //   - OBS_RECOVERY (default: true)
-func observabilityParamsFromSource(src cfgcontracts.Source, httpDriver string) observability.ObservabilityParams {
+func observabilityParamsFromSource(src cfgcontracts.Source, httpDriver httptypes.HTTPDriver) observability.ObservabilityParams {
 	cfg := observability.ObservabilityConfig{RequestID: true, Telemetry: true, Recovery: true}
 
 	cfg.RequestID = cfgports.Bool(src, "OBS_REQUEST_ID", cfg.RequestID)
@@ -106,10 +107,7 @@ func httpParamsFromSource(src cfgcontracts.Source) http.HTTPParams {
 //   - DB_OPTIONS (csv: "k=v,k2=v2")
 //   - DB_MIGRATE (default: false)
 func databaseParamsFromSource(src cfgcontracts.Source) persistence.DatabaseParams {
-	driver := cfgports.LowerTrimmed(src, "DB_DRIVER")
-	if driver == "" {
-		driver = "mysql"
-	}
+	driver := types.NormalizeDBDriver(cfgports.Trimmed(src, "DB_DRIVER"))
 
 	database := cfgports.Trimmed(src, "DB_NAME")
 	if database == "" {

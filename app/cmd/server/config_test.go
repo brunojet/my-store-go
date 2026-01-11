@@ -7,6 +7,7 @@ import (
 
 	cfgcontracts "github.com/brunojet/my-store-go/app/infra/config/contracts"
 	infrahttp "github.com/brunojet/my-store-go/app/infra/http"
+	"github.com/brunojet/my-store-go/app/infra/persistence/types"
 )
 
 type mapSource map[string]string
@@ -111,7 +112,7 @@ func TestHTTPParamsFromSource_Overrides(t *testing.T) {
 
 func TestDatabaseParamsFromSource_Defaults(t *testing.T) {
 	p := databaseParamsFromSource(mapSource{})
-	if p.Driver != "mysql" {
+	if p.Driver != types.DBDriverMySQL {
 		t.Fatalf("expected mysql, got %q", p.Driver)
 	}
 	if p.Migrate {
@@ -140,7 +141,7 @@ func TestDatabaseParamsFromSource_OptionsAndMigrate(t *testing.T) {
 		"DB_OPTIONS": "charset=utf8mb4,loc=UTC,invalid",
 		"DB_MIGRATE": "false",
 	})
-	if p.Driver != "sqlite" {
+	if p.Driver != types.DBDriverSQLite {
 		t.Fatalf("expected sqlite, got %q", p.Driver)
 	}
 	if p.Migrate {

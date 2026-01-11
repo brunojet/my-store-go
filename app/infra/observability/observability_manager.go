@@ -2,13 +2,15 @@ package observability
 
 import (
 	"sync"
+
+	httptypes "github.com/brunojet/my-store-go/app/infra/http/types"
 )
 
 // ObservabilityParams describes how to build observability middlewares
 // for a selected HTTP driver.
 type ObservabilityParams struct {
 	// Driver is the HTTP driver (e.g. "gin", "chi").
-	Driver string
+	Driver httptypes.HTTPDriver
 	// Config enables/disables features.
 	Config ObservabilityConfig
 }
@@ -17,8 +19,7 @@ type ObservabilityParams struct {
 //
 // It caches the computed slice(s) since middleware construction can allocate.
 type ObservabilityManager struct {
-	Params ObservabilityParams
-
+	Params      ObservabilityParams
 	mu          sync.Mutex
 	middlewares *ObservabilityMiddlewares
 }

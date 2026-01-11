@@ -3,17 +3,19 @@ package persistence
 import (
 	"strings"
 	"testing"
+
+	"github.com/brunojet/my-store-go/app/infra/persistence/types"
 )
 
 func TestDatabaseParams_NormalizedDriver_DefaultsToMySQL(t *testing.T) {
 	p := DatabaseParams{}
-	if got := p.NormalizedDriver(); got != "mysql" {
+	if got := p.Driver; got != types.DBDriverMySQL {
 		t.Fatalf("expected mysql, got %q", got)
 	}
 }
 
 func TestDatabaseParams_BuildDSN_PrefersExplicitDSN(t *testing.T) {
-	p := DatabaseParams{Driver: "mysql", DSN: "  some-dsn  "}
+	p := DatabaseParams{Driver: types.DBDriverMySQL, DSN: "  some-dsn  "}
 	dsn, err := p.BuildDSN()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -24,7 +26,7 @@ func TestDatabaseParams_BuildDSN_PrefersExplicitDSN(t *testing.T) {
 }
 
 func TestDatabaseParams_BuildDSN_SqliteEmpty(t *testing.T) {
-	p := DatabaseParams{Driver: "sqlite"}
+	p := DatabaseParams{Driver: types.DBDriverSQLite}
 	dsn, err := p.BuildDSN()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -36,7 +38,7 @@ func TestDatabaseParams_BuildDSN_SqliteEmpty(t *testing.T) {
 
 func TestDatabaseParams_BuildDSN_MySQLStructured(t *testing.T) {
 	p := DatabaseParams{
-		Driver:   "mysql",
+		Driver:   types.DBDriverMySQL,
 		Host:     "db",
 		Port:     3307,
 		Database: "store",
@@ -60,7 +62,7 @@ func TestDatabaseParams_BuildDSN_MySQLStructured(t *testing.T) {
 }
 
 func TestDatabaseParams_BuildDSN_MySQLMissingUserOrDatabase(t *testing.T) {
-	p := DatabaseParams{Driver: "mysql", Host: "db"}
+	p := DatabaseParams{Driver: types.DBDriverMySQL, Host: "db"}
 	_, err := p.BuildDSN()
 	if err == nil {
 		t.Fatalf("expected error")
