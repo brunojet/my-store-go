@@ -75,7 +75,7 @@ func observabilityParamsFromSource(src cfgcontracts.Source, httpDriver httptypes
 
 // Env (HTTP):
 //   - HTTP_DRIVER (default: "gin")
-//   - CORS_ENABLED (default: true)
+//   - CORS_ENABLED (default: false)
 //   - CORS_ALLOW_ORIGINS (default: "*")
 //   - CORS_ALLOW_METHODS (default: "GET,POST,PATCH,DELETE,OPTIONS")
 //   - CORS_ALLOW_HEADERS (default: "Content-Type,Authorization")
@@ -85,7 +85,7 @@ func observabilityParamsFromSource(src cfgcontracts.Source, httpDriver httptypes
 func httpParamsFromSource(src cfgcontracts.Source) http.HTTPParams {
 	// Keep defaults aligned with infra/http/config.go.
 	cors := httptypes.CORSConfig{
-		Enabled:          cfgports.Bool(src, "CORS_ENABLED", true),
+		Enabled:          cfgports.Bool(src, "CORS_ENABLED", false),
 		AllowOrigins:     cfgports.SplitCSV(cfgports.Trimmed(src, "CORS_ALLOW_ORIGINS"), []string{"*"}),
 		AllowMethods:     cfgports.SplitCSVUpper(cfgports.Trimmed(src, "CORS_ALLOW_METHODS"), []string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"}),
 		AllowHeaders:     cfgports.SplitCSV(cfgports.Trimmed(src, "CORS_ALLOW_HEADERS"), []string{"Content-Type", "Authorization"}),

@@ -50,8 +50,8 @@ func TestHTTPParamsFromSource_Defaults(t *testing.T) {
 	if !p.Register {
 		t.Fatalf("expected Register=true")
 	}
-	if !p.CORS.Enabled {
-		t.Fatalf("expected CORS enabled")
+	if p.CORS.Enabled {
+		t.Fatalf("expected CORS disabled by default")
 	}
 	if !reflect.DeepEqual(p.CORS.AllowOrigins, []string{"*"}) {
 		t.Fatalf("expected AllowOrigins [*], got %#v", p.CORS.AllowOrigins)

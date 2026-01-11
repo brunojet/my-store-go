@@ -29,6 +29,11 @@ func BuildCORSHeaders(cfg httptypes.CORSConfig, origin string) (h CORSHeaders, o
 	if strings.TrimSpace(origin) == "" {
 		return CORSHeaders{}, false
 	}
+	// Guardrail: credentials must never be enabled with wildcard origins.
+	// In this invalid configuration, do not apply any CORS headers.
+	if cfg.AllowCredentials && slices.Contains(cfg.AllowOrigins, "*") {
+		return CORSHeaders{}, false
+	}
 	if !slices.Contains(cfg.AllowOrigins, "*") && !slices.Contains(cfg.AllowOrigins, origin) {
 		return CORSHeaders{}, false
 	}
