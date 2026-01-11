@@ -10,7 +10,7 @@ import (
 	"github.com/brunojet/my-store-go/app/infra/http/adapters/nethttp"
 	"github.com/brunojet/my-store-go/app/infra/http/contracts"
 	"github.com/brunojet/my-store-go/app/infra/http/types"
-	observabilitytypes "github.com/brunojet/my-store-go/app/infra/observability/types"
+	obstypes "github.com/brunojet/my-store-go/app/infra/observability/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -26,7 +26,7 @@ var ErrMissingRegistrar = errors.New("register enabled but no registrar provided
 type HTTPParams struct {
 	Driver                   types.HTTPDriver
 	CORS                     types.CORSConfig
-	ObservabilityMiddlewares observabilitytypes.Middlewares
+	ObservabilityMiddlewares obstypes.Middlewares
 	Register                 bool
 }
 
