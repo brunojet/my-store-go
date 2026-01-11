@@ -1,12 +1,12 @@
-package persistence
+package database
 
 import (
 	"errors"
 	"fmt"
 	"strings"
 
-	mysqlp "github.com/brunojet/my-store-go/app/infra/persistence/adapters/mysql"
-	"github.com/brunojet/my-store-go/app/infra/persistence/types"
+	mysqlp "github.com/brunojet/my-store-go/app/infra/database/adapters/mysql"
+	"github.com/brunojet/my-store-go/app/infra/database/types"
 )
 
 var (

@@ -81,7 +81,7 @@ flowchart TB
     ISRV["infra/server"]
     IHTTP["infra/http"]
     IOBS["infra/observability"]
-    IDB["infra/persistence"]
+    IDB["infra/database"]
   end
  subgraph Modules["Módulos de negócio"]
     PROVIDER["store-provider"]

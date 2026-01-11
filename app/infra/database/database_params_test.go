@@ -1,11 +1,11 @@
-package persistence
+package database
 
 import (
 	"errors"
 	"strings"
 	"testing"
 
-	"github.com/brunojet/my-store-go/app/infra/persistence/types"
+	"github.com/brunojet/my-store-go/app/infra/database/types"
 )
 
 func TestDatabaseParams_BuildDSN_EmptyDriverIsUnsupported(t *testing.T) {

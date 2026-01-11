@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/brunojet/my-store-go/app/infra/persistence/contracts"
+	"github.com/brunojet/my-store-go/app/infra/database/contracts"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )

@@ -5,17 +5,17 @@ import (
 	"net/http"
 
 	core "github.com/brunojet/my-store-go/app/core"
+	"github.com/brunojet/my-store-go/app/infra/database"
 	httpruntime "github.com/brunojet/my-store-go/app/infra/http"
 	"github.com/brunojet/my-store-go/app/infra/http/contracts"
 	"github.com/brunojet/my-store-go/app/infra/observability"
-	"github.com/brunojet/my-store-go/app/infra/persistence"
 	storeprovider "github.com/brunojet/my-store-go/app/store-provider"
 )
 
 func main() {
 	cfg := configFromEnv()
 
-	dbMgr, err := persistence.NewDatabaseManager(cfg.Database)
+	dbMgr, err := database.NewDatabaseManager(cfg.Database)
 	if err != nil {
 		log.Fatalf("db init: %v", err)
 	}

@@ -6,12 +6,12 @@ import (
 	"github.com/brunojet/my-store-go/app/infra/config/adapters/env"
 	cfgcontracts "github.com/brunojet/my-store-go/app/infra/config/contracts"
 	cfgports "github.com/brunojet/my-store-go/app/infra/config/ports"
+	"github.com/brunojet/my-store-go/app/infra/database"
+	"github.com/brunojet/my-store-go/app/infra/database/types"
 	"github.com/brunojet/my-store-go/app/infra/http"
 	httptypes "github.com/brunojet/my-store-go/app/infra/http/types"
 	"github.com/brunojet/my-store-go/app/infra/observability"
 	obstypes "github.com/brunojet/my-store-go/app/infra/observability/types"
-	"github.com/brunojet/my-store-go/app/infra/persistence"
-	"github.com/brunojet/my-store-go/app/infra/persistence/types"
 	"github.com/brunojet/my-store-go/app/infra/server"
 )
 
@@ -19,7 +19,7 @@ type appConfig struct {
 	Server        server.ServerParams
 	HTTP          http.HTTPParams
 	Observability observability.ObservabilityParams
-	Database      persistence.DatabaseParams
+	Database      database.DatabaseParams
 }
 
 func configFromEnv() appConfig {
@@ -110,7 +110,7 @@ func httpParamsFromSource(src cfgcontracts.Source) http.HTTPParams {
 //   - DB_SCHEMA
 //   - DB_OPTIONS (csv: "k=v,k2=v2")
 //   - DB_MIGRATE (default: false)
-func databaseParamsFromSource(src cfgcontracts.Source) persistence.DatabaseParams {
+func databaseParamsFromSource(src cfgcontracts.Source) database.DatabaseParams {
 	driver := types.NormalizeDBDriver(cfgports.Trimmed(src, "DB_DRIVER"))
 
 	database := cfgports.Trimmed(src, "DB_NAME")
@@ -118,7 +118,7 @@ func databaseParamsFromSource(src cfgcontracts.Source) persistence.DatabaseParam
 		database = cfgports.Trimmed(src, "DB_DATABASE")
 	}
 
-	params := persistence.DatabaseParams{
+	params := database.DatabaseParams{
 		Driver:   driver,
 		DSN:      cfgports.Trimmed(src, "DB_DSN"),
 		Host:     cfgports.Trimmed(src, "DB_HOST"),

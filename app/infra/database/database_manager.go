@@ -1,4 +1,4 @@
-package persistence
+package database
 
 import (
 	"errors"
@@ -6,10 +6,10 @@ import (
 	"strings"
 	"sync"
 
-	mysqlp "github.com/brunojet/my-store-go/app/infra/persistence/adapters/mysql"
-	sqlitep "github.com/brunojet/my-store-go/app/infra/persistence/adapters/sqlite"
-	"github.com/brunojet/my-store-go/app/infra/persistence/contracts"
-	"github.com/brunojet/my-store-go/app/infra/persistence/types"
+	mysqlp "github.com/brunojet/my-store-go/app/infra/database/adapters/mysql"
+	sqlitep "github.com/brunojet/my-store-go/app/infra/database/adapters/sqlite"
+	"github.com/brunojet/my-store-go/app/infra/database/contracts"
+	"github.com/brunojet/my-store-go/app/infra/database/types"
 	"gorm.io/gorm"
 )
 
@@ -49,7 +49,7 @@ func Select(cfg DatabaseConfig) (contracts.DatabaseConnector, error) {
 //
 // Typical usage:
 //
-//	mgr, _ := persistence.NewDatabaseManager(persistence.DatabaseParams{Driver: persistence.DBDriverSQLite, Migrate: true})
+//	mgr, _ := database.NewDatabaseManager(database.DatabaseParams{Driver: database.DBDriverSQLite, Migrate: true})
 //	db, _ := mgr.OpenAndMigrate(core.Register)
 //	defer mgr.Close()
 type DatabaseManager struct {

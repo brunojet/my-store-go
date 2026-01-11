@@ -55,7 +55,7 @@ O diagrama macro do projeto (incluindo `store-*`, `core` e `infra`) fica no READ
 sequenceDiagram
   participant Env as Env vars
   participant Main as cmd/server
-  participant DBM as persistence.DatabaseManager
+  participant DBM as database.DatabaseManager
   participant Core as core.Register (migrations)
   participant OBS as observability.ObservabilityManager
   participant HTTP as http.HTTPManager
@@ -110,9 +110,9 @@ sequenceDiagram
   - implementar nos adapters (Gin/net/http)
   - incluir no builder em `infra/observability/observability_middlewares.go`
 - Adicionar novo driver DB:
-  - estender `infra/persistence/types` + `NormalizeDBDriver`
-  - implementar `contracts.DatabaseConnector` em `infra/persistence/adapters/<driver>`
-  - plugar no `persistence.Select`
+  - estender `infra/database/types` + `NormalizeDBDriver`
+  - implementar `contracts.DatabaseConnector` em `infra/database/adapters/<driver>`
+  - plugar no `database.Select`
 
 ## Testes e validações
 

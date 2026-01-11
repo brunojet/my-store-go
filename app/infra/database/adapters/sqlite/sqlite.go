@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/brunojet/my-store-go/app/infra/persistence/contracts"
+	"github.com/brunojet/my-store-go/app/infra/database/contracts"
 	gormsqlite "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	_ "modernc.org/sqlite"

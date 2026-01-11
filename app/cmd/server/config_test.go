@@ -6,8 +6,8 @@ import (
 	"time"
 
 	cfgcontracts "github.com/brunojet/my-store-go/app/infra/config/contracts"
+	"github.com/brunojet/my-store-go/app/infra/database/types"
 	httptypes "github.com/brunojet/my-store-go/app/infra/http/types"
-	"github.com/brunojet/my-store-go/app/infra/persistence/types"
 )
 
 type mapSource map[string]string
