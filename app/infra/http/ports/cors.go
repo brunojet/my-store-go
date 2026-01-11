@@ -5,7 +5,7 @@ import (
 	"slices"
 	"strings"
 
-	httpcontracts "github.com/brunojet/my-store-go/app/infra/http/contracts"
+	httptypes "github.com/brunojet/my-store-go/app/infra/http/types"
 )
 
 // CORSHeaders represents the headers that should be applied when handling a CORS request.
@@ -25,7 +25,7 @@ type CORSHeaders struct {
 // BuildCORSHeaders computes the headers for a given Origin.
 //
 // ok is false when the Origin should not be allowed (or Origin is empty).
-func BuildCORSHeaders(cfg httpcontracts.CORSConfig, origin string) (h CORSHeaders, ok bool) {
+func BuildCORSHeaders(cfg httptypes.CORSConfig, origin string) (h CORSHeaders, ok bool) {
 	if strings.TrimSpace(origin) == "" {
 		return CORSHeaders{}, false
 	}

@@ -14,6 +14,7 @@
             "env": {
                 "HTTP_DRIVER": "gin",
                 "DB_DRIVER": "sqlite",
+                "DB_MIGRATE": "true",
                 "DB_DSN": "",
                 "OBS_REQUEST_ID": "true",
                 "OBS_TELEMETRY": "true",
@@ -31,6 +32,7 @@
             "env": {
                 "HTTP_DRIVER": "gin",
                 "DB_DRIVER": "sqlite",
+                "DB_MIGRATE": "true",
                 "DB_DSN": "data/dev.db",
                 "OBS_REQUEST_ID": "true",
                 "OBS_TELEMETRY": "true",

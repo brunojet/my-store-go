@@ -1,4 +1,4 @@
-package ports
+package contracts
 
 // Source provides access to configuration values.
 //

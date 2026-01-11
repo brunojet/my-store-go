@@ -3,13 +3,13 @@ package base
 import (
 	"net/http"
 
-	httpcontracts "github.com/brunojet/my-store-go/app/infra/http/contracts"
 	httpports "github.com/brunojet/my-store-go/app/infra/http/ports"
+	httptypes "github.com/brunojet/my-store-go/app/infra/http/types"
 	"github.com/gin-gonic/gin"
 )
 
 // CORS returns a Gin middleware that applies CORS headers and handles preflight OPTIONS.
-func CORS(cfg httpcontracts.CORSConfig) gin.HandlerFunc {
+func CORS(cfg httptypes.CORSConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		origin := c.GetHeader("Origin")
 		if h, ok := httpports.BuildCORSHeaders(cfg, origin); ok {

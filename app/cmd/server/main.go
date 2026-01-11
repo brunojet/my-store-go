@@ -9,57 +9,61 @@ import (
 	"github.com/brunojet/my-store-go/app/infra/http/contracts"
 	"github.com/brunojet/my-store-go/app/infra/observability"
 	"github.com/brunojet/my-store-go/app/infra/persistence"
-	server "github.com/brunojet/my-store-go/app/infra/server"
 	storeprovider "github.com/brunojet/my-store-go/app/store-provider"
 )
 
 func main() {
-	serverCfg := server.ConfigFromEnv()
-	httpCfg := httpruntime.ConfigFromEnv()
-	obsCfg := observability.ConfigFromEnv()
-	persistCfg := persistence.ConfigFromEnv()
+	cfg := configFromEnv()
 
-	conn, err := persistence.Select(persistCfg)
+	dbMgr, err := persistence.NewDatabaseManager(cfg.Database)
 	if err != nil {
-		log.Fatalf("open db: %v", err)
+		log.Fatalf("db init: %v", err)
 	}
 
-	db, err := conn.Open()
+	db, err := dbMgr.OpenAndMigrate(core.Register)
 	if err != nil {
-		log.Fatalf("open db: %v", err)
+		log.Fatalf("db open: %v", err)
 	}
 	defer func() {
-		if err := conn.Close(); err != nil {
+		if err := dbMgr.Close(); err != nil {
 			log.Printf("close db: %v", err)
 		}
 	}()
 
-	if err := core.Register(db); err != nil {
-		log.Fatalf("migrate: %v", err)
+	obsMgr := observability.NewObservabilityManager(cfg.Observability)
+	mws, err := obsMgr.Open()
+	if err != nil {
+		log.Fatalf("obs init: %v", err)
 	}
+	defer func() {
+		if err := obsMgr.Close(); err != nil {
+			log.Printf("close obs: %v", err)
+		}
+	}()
 
-	mws := observability.HTTPMiddlewares(httpCfg.Driver, obsCfg)
-	httpRuntime, err := httpruntime.Select(
-		httpCfg.Driver,
-		httpruntime.WithMiddlewares(mws),
-		httpruntime.WithCORS(httpCfg.CORS),
-	)
-
+	httpParams := cfg.HTTP
+	httpParams.ObservabilityMiddlewares = mws
+	httpMgr, err := httpruntime.NewHTTPManager(httpParams)
 	if err != nil {
 		log.Fatalf("http init: %v", err)
 	}
 
-	httpRuntime.Router.GET("/health", func(c contracts.Context) {
-		c.String(200, "ok")
+	httpRuntime, err := httpMgr.OpenAndRegister(func(r contracts.Router) error {
+		r.GET("/health", func(c contracts.Context) {
+			c.String(200, "ok")
+		})
+		storeprovider.Register(r, db)
+		return nil
 	})
-
-	storeprovider.Register(httpRuntime.Router, db)
+	if err != nil {
+		log.Fatalf("http register: %v", err)
+	}
 
 	srv := &http.Server{
-		Addr:              serverCfg.Addr,
+		Addr:              cfg.Server.Addr,
 		Handler:           httpRuntime.Handler,
-		ReadHeaderTimeout: serverCfg.ReadHeaderTimeout,
+		ReadHeaderTimeout: cfg.Server.ReadHeaderTimeout,
 	}
-	log.Printf("server listening on %s", serverCfg.Addr)
+	log.Printf("server listening on %s", cfg.Server.Addr)
 	log.Fatal(srv.ListenAndServe())
 }

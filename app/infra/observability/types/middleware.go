@@ -1,4 +1,4 @@
-package contracts
+package types
 
 import (
 	"net/http"
@@ -6,11 +6,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Config defines which observability features are enabled.
-// It is shared across all HTTP adapters.
+// MiddlewareConfig defines which observability features are enabled.
 //
-// Defaults are applied by infra/observability.
-type Config struct {
+// Defaults are applied by the app launcher.
+type MiddlewareConfig struct {
 	RequestID bool
 	Telemetry bool
 	Recovery  bool
@@ -22,9 +21,9 @@ type GinMiddleware = gin.HandlerFunc
 // NetHTTPMiddleware is a net/http middleware.
 type NetHTTPMiddleware = func(http.Handler) http.Handler
 
-// HTTPMiddlewares is a single "package" of middlewares for the selected HTTP driver.
+// Middlewares is a single "package" of middlewares for the selected HTTP driver.
 // Exactly one of Gin or NetHTTP should be populated.
-type HTTPMiddlewares struct {
+type Middlewares struct {
 	Gin     []GinMiddleware
 	NetHTTP []NetHTTPMiddleware
 }
