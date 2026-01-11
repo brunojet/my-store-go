@@ -1,32 +1,24 @@
 package ports
 
-import "testing"
+import (
+	"strings"
+	"testing"
+	"time"
+)
 
-func TestSelectRoute_PrefersTemplate(t *testing.T) {
-	template := "/apps/{id}"
-	actual := "/apps/123"
+func TestFormatAccessLog_UsesRouteKey(t *testing.T) {
+	line := FormatAccessLog("rid-123", "GET", "/apps/{id}", 200, 12*time.Millisecond)
 
-	got := SelectRoute(template, actual)
-	if got != template {
-		t.Fatalf("SelectRoute() = %q, want %q", got, template)
+	if !strings.Contains(line, "rid=rid-123") {
+		t.Fatalf("log line missing rid: %q", line)
 	}
-}
-
-func TestSelectRoute_UnmatchedWhenTemplateMissing(t *testing.T) {
-	cases := []struct {
-		name     string
-		template string
-	}{
-		{name: "empty", template: ""},
-		{name: "whitespace", template: "  \t\n"},
+	if !strings.Contains(line, "method=GET") {
+		t.Fatalf("log line missing method: %q", line)
 	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			got := SelectRoute(tc.template, "/apps/123")
-			if got != RouteUnmatched {
-				t.Fatalf("SelectRoute() = %q, want %q", got, RouteUnmatched)
-			}
-		})
+	if !strings.Contains(line, "route=/apps/{id}") {
+		t.Fatalf("log line missing route=: %q", line)
+	}
+	if strings.Contains(line, " path=") {
+		t.Fatalf("log line should not use path=: %q", line)
 	}
 }

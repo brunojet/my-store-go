@@ -8,7 +8,7 @@ import (
 // FormatAccessLog returns the canonical access log line used by infra.
 func FormatAccessLog(rid string, method string, route string, status int, latency time.Duration) string {
 	return fmt.Sprintf(
-		"http request rid=%s method=%s path=%s status=%d latency=%s",
+		"http request rid=%s method=%s route=%s status=%d latency=%s",
 		rid,
 		method,
 		route,
