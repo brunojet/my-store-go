@@ -6,6 +6,7 @@ import (
 	"time"
 
 	coretel "github.com/brunojet/my-store-go/app/core/telemetry"
+	"github.com/go-chi/chi/v5"
 )
 
 // Telemetry provides baseline tracing/metrics/logs for every HTTP request.
@@ -19,11 +20,16 @@ func Telemetry(p coretel.Provider) func(http.Handler) http.Handler {
 			sr := &statusRecorder{ResponseWriter: w, status: http.StatusOK}
 			start := time.Now()
 
+			route := chi.RouteContext(r.Context()).RoutePattern()
+			if route == "" {
+				route = r.URL.Path
+			}
+
 			ctx, span := p.Tracer().Start(
 				r.Context(),
-				"http "+r.Method+" "+r.URL.Path,
+				"http "+r.Method+" "+route,
 				coretel.Field{Key: "method", Value: r.Method},
-				coretel.Field{Key: "path", Value: r.URL.Path},
+				coretel.Field{Key: "route", Value: route},
 			)
 
 			next.ServeHTTP(sr, r.WithContext(ctx))
@@ -35,14 +41,14 @@ func Telemetry(p coretel.Provider) func(http.Handler) http.Handler {
 				"http.server.requests",
 				1,
 				coretel.Field{Key: "method", Value: r.Method},
-				coretel.Field{Key: "path", Value: r.URL.Path},
+				coretel.Field{Key: "route", Value: route},
 				coretel.Field{Key: "status", Value: status},
 			)
 			p.Metrics().ObserveDuration(
 				"http.server.duration",
 				lat,
 				coretel.Field{Key: "method", Value: r.Method},
-				coretel.Field{Key: "path", Value: r.URL.Path},
+				coretel.Field{Key: "route", Value: route},
 				coretel.Field{Key: "status", Value: status},
 			)
 

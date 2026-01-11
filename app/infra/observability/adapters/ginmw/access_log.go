@@ -4,6 +4,7 @@ import (
 	"log"
 	"time"
 
+	obsports "github.com/brunojet/my-store-go/app/infra/observability/ports"
 	"github.com/brunojet/my-store-go/app/infra/observability/requestid"
 	"github.com/gin-gonic/gin"
 )
@@ -20,11 +21,8 @@ func AccessLog() gin.HandlerFunc {
 		rid, _ := requestid.From(c.Request.Context())
 		status := c.Writer.Status()
 		method := c.Request.Method
-		path := c.FullPath()
-		if path == "" {
-			path = c.Request.URL.Path
-		}
+		route := obsports.SelectRoute(c.FullPath(), c.Request.URL.Path)
 
-		log.Printf("http request rid=%s method=%s path=%s status=%d latency=%s", rid, method, path, status, lat)
+		log.Print(obsports.FormatAccessLog(rid, method, route, status, lat))
 	}
 }

@@ -49,13 +49,16 @@ func serverConfigFromSource(src cfgcontracts.Source) server.ServerParams {
 
 // Env (Observability):
 //   - OBS_REQUEST_ID (default: true)
+//   - OBS_ACCESS_LOG (default: false)
 //   - OBS_TELEMETRY (default: true)
-//   - OBS_ACCESS_LOG (backward-compatible alias for OBS_TELEMETRY)
+//   - if OBS_TELEMETRY is not set, OBS_ACCESS_LOG acts as a backward-compatible alias
+//     for telemetry enable/disable.
 //   - OBS_RECOVERY (default: true)
 func observabilityParamsFromSource(src cfgcontracts.Source, httpDriver httptypes.HTTPDriver) observability.ObservabilityParams {
-	cfg := obstypes.MiddlewareConfig{RequestID: true, Telemetry: true, Recovery: true}
+	cfg := obstypes.MiddlewareConfig{RequestID: true, AccessLog: false, Telemetry: true, Recovery: true}
 
 	cfg.RequestID = cfgports.Bool(src, "OBS_REQUEST_ID", cfg.RequestID)
+	cfg.AccessLog = cfgports.Bool(src, "OBS_ACCESS_LOG", cfg.AccessLog)
 
 	// Backward-compatible: OBS_ACCESS_LOG previously controlled request logs.
 	// If OBS_TELEMETRY is explicitly set, it wins.

@@ -98,3 +98,45 @@ store-consumer
   handlers
   routers
 ```
+
+## Configuração (variáveis de ambiente)
+
+O entrypoint atual é `app/cmd/server` e lê configuração via variáveis de ambiente.
+
+### Server
+
+- `PORT` (default: `8080`)
+- `READ_HEADER_TIMEOUT` (default: `5s`)
+
+### HTTP
+
+- `HTTP_DRIVER` (default: `gin`, suportados: `gin`, `chi`)
+
+### CORS
+
+- `CORS_ENABLED` (default: `true`)
+- `CORS_ALLOW_ORIGINS` (default: `*`)
+- `CORS_ALLOW_METHODS` (default: `GET,POST,PATCH,DELETE,OPTIONS`)
+- `CORS_ALLOW_HEADERS` (default: `Content-Type,Authorization`)
+- `CORS_EXPOSE_HEADERS` (default: vazio)
+- `CORS_ALLOW_CREDENTIALS` (default: `false`)
+- `CORS_MAX_AGE` (default: `10m`)
+
+Nota (produção): evite `CORS_ALLOW_ORIGINS=*` se você precisa restringir origens. Prefira listar explicitamente as origens permitidas.
+
+### Observability
+
+- `OBS_REQUEST_ID` (default: `true`)
+- `OBS_ACCESS_LOG` (default: `false`)
+- `OBS_TELEMETRY` (default: `true`)
+- `OBS_RECOVERY` (default: `true`)
+
+Compatibilidade: se `OBS_TELEMETRY` não estiver definida, `OBS_ACCESS_LOG` também atua como alias para habilitar/desabilitar telemetry.
+
+### Database
+
+- `DB_DRIVER` (default: `mysql`, suportados: `mysql`, `sqlite`)
+- `DB_DSN` (driver-specific)
+- `DB_HOST`, `DB_PORT`, `DB_NAME` (ou `DB_DATABASE`), `DB_USER`, `DB_PASSWORD`
+- `DB_OPTIONS` (CSV `k=v,k2=v2`)
+- `DB_MIGRATE` (default: `false`)

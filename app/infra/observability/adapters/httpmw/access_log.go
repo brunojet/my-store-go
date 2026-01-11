@@ -5,7 +5,9 @@ import (
 	"net/http"
 	"time"
 
+	obsports "github.com/brunojet/my-store-go/app/infra/observability/ports"
 	"github.com/brunojet/my-store-go/app/infra/observability/requestid"
+	"github.com/go-chi/chi/v5"
 )
 
 type statusRecorder struct {
@@ -27,7 +29,8 @@ func AccessLog(next http.Handler) http.Handler {
 
 		lat := time.Since(start)
 		rid, _ := requestid.From(r.Context())
+		route := obsports.SelectRoute(chi.RouteContext(r.Context()).RoutePattern(), r.URL.Path)
 
-		log.Printf("http request rid=%s method=%s path=%s status=%d latency=%s", rid, r.Method, r.URL.Path, sr.status, lat)
+		log.Print(obsports.FormatAccessLog(rid, r.Method, route, sr.status, lat))
 	})
 }

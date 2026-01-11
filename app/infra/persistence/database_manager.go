@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 
 	mysqlp "github.com/brunojet/my-store-go/app/infra/persistence/adapters/mysql"
 	sqlitep "github.com/brunojet/my-store-go/app/infra/persistence/adapters/sqlite"
@@ -54,8 +55,8 @@ func Select(cfg DatabaseConfig) (contracts.DatabaseConnector, error) {
 type DatabaseManager struct {
 	Params    DatabaseParams
 	Connector contracts.DatabaseConnector
-
-	db *gorm.DB
+	mu        sync.Mutex
+	db        *gorm.DB
 }
 
 func NewDatabaseManager(params DatabaseParams) (*DatabaseManager, error) {
@@ -67,6 +68,12 @@ func NewDatabaseManager(params DatabaseParams) (*DatabaseManager, error) {
 }
 
 func (m *DatabaseManager) Open() (*gorm.DB, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.openUnlocked()
+}
+
+func (m *DatabaseManager) openUnlocked() (*gorm.DB, error) {
 	if m.Connector == nil {
 		return nil, fmt.Errorf("nil Connector")
 	}
@@ -82,7 +89,10 @@ func (m *DatabaseManager) Open() (*gorm.DB, error) {
 }
 
 func (m *DatabaseManager) OpenAndMigrate(migrator func(*gorm.DB) error) (*gorm.DB, error) {
-	db, err := m.Open()
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	db, err := m.openUnlocked()
 	if err != nil {
 		return nil, err
 	}
@@ -99,6 +109,9 @@ func (m *DatabaseManager) OpenAndMigrate(migrator func(*gorm.DB) error) (*gorm.D
 }
 
 func (m *DatabaseManager) Close() error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	m.db = nil
 	if m.Connector == nil {
 		return nil

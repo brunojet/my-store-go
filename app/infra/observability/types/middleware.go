@@ -11,6 +11,7 @@ import (
 // Defaults are applied by the app launcher.
 type MiddlewareConfig struct {
 	RequestID bool
+	AccessLog bool
 	Telemetry bool
 	Recovery  bool
 }

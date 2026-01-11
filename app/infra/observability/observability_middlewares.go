@@ -1,6 +1,8 @@
 package observability
 
 import (
+	"fmt"
+
 	httptypes "github.com/brunojet/my-store-go/app/infra/http/types"
 	"github.com/brunojet/my-store-go/app/infra/observability/adapters/ginmw"
 	"github.com/brunojet/my-store-go/app/infra/observability/adapters/httpmw"
@@ -17,6 +19,9 @@ func ginMiddlewares(cfg types.MiddlewareConfig) []types.GinMiddleware {
 	var mws []types.GinMiddleware
 	if cfg.RequestID {
 		mws = append(mws, ginmw.RequestID())
+	}
+	if cfg.AccessLog {
+		mws = append(mws, ginmw.AccessLog())
 	}
 	if cfg.Telemetry {
 		mws = append(mws, ginmw.Telemetry(tel))
@@ -35,6 +40,9 @@ func netHTTPMiddlewares(cfg types.MiddlewareConfig) []types.NetHTTPMiddleware {
 	if cfg.RequestID {
 		mws = append(mws, httpmw.RequestID)
 	}
+	if cfg.AccessLog {
+		mws = append(mws, httpmw.AccessLog)
+	}
 	if cfg.Telemetry {
 		mws = append(mws, httpmw.Telemetry(tel))
 	}
@@ -44,11 +52,15 @@ func netHTTPMiddlewares(cfg types.MiddlewareConfig) []types.NetHTTPMiddleware {
 	return mws
 }
 
-func BuildMiddlewares(driver httptypes.HTTPDriver, cfg types.MiddlewareConfig) types.Middlewares {
+func BuildMiddlewares(driver httptypes.HTTPDriver, cfg types.MiddlewareConfig) (types.Middlewares, error) {
+	if !driver.IsSupported() {
+		return types.Middlewares{}, fmt.Errorf("unsupported HTTP_DRIVER %q", driver)
+	}
+
 	switch driver {
 	case httptypes.HTTPDriverChi:
-		return types.Middlewares{NetHTTP: netHTTPMiddlewares(cfg)}
+		return types.Middlewares{NetHTTP: netHTTPMiddlewares(cfg)}, nil
 	default:
-		return types.Middlewares{Gin: ginMiddlewares(cfg)}
+		return types.Middlewares{Gin: ginMiddlewares(cfg)}, nil
 	}
 }

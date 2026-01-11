@@ -37,7 +37,10 @@ func (m *ObservabilityManager) Open() (types.Middlewares, error) {
 		return *m.middlewares, nil
 	}
 
-	mw := BuildMiddlewares(m.Params.Driver, m.Params.Config)
+	mw, err := BuildMiddlewares(m.Params.Driver, m.Params.Config)
+	if err != nil {
+		return types.Middlewares{}, err
+	}
 	m.middlewares = &mw
 	return mw, nil
 }
