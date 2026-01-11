@@ -31,7 +31,6 @@ type ToResponse[T any, Resp any] func(T) Resp
 // This handler does not depend on Gin; the framework-specific adapter must provide a contracts.Context.
 type CRUDHandler[T any, CreateReq any, PatchReq any, Resp any] struct {
 	BaseHandler
-
 	Service         CRUDService[T, CreateReq, PatchReq]
 	ToResponse      ToResponse[T, Resp]
 	NotFoundError   error
