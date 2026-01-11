@@ -6,6 +6,7 @@ import (
 	"time"
 
 	coretel "github.com/brunojet/my-store-go/app/core/telemetry"
+	obsports "github.com/brunojet/my-store-go/app/infra/observability/ports"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -20,10 +21,7 @@ func Telemetry(p coretel.Provider) func(http.Handler) http.Handler {
 			sr := &statusRecorder{ResponseWriter: w, status: http.StatusOK}
 			start := time.Now()
 
-			route := chi.RouteContext(r.Context()).RoutePattern()
-			if route == "" {
-				route = r.URL.Path
-			}
+			route := obsports.SelectRoute(chi.RouteContext(r.Context()).RoutePattern(), r.URL.Path)
 
 			ctx, span := p.Tracer().Start(
 				r.Context(),

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	coretel "github.com/brunojet/my-store-go/app/core/telemetry"
+	obsports "github.com/brunojet/my-store-go/app/infra/observability/ports"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,10 +21,7 @@ func Telemetry(p coretel.Provider) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 
-		route := c.FullPath()
-		if route == "" {
-			route = c.Request.URL.Path
-		}
+		route := obsports.SelectRoute(c.FullPath(), c.Request.URL.Path)
 
 		ctx, span := p.Tracer().Start(
 			c.Request.Context(),
