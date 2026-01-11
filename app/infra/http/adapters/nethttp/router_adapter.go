@@ -5,19 +5,7 @@ import (
 
 	"github.com/brunojet/my-store-go/app/infra/http/contracts"
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 )
-
-type ChiApp struct {
-	Router chi.Router
-}
-
-func NewChiApp() *ChiApp {
-	r := chi.NewRouter()
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-	return &ChiApp{Router: r}
-}
 
 type ChiRouter struct {
 	r chi.Router

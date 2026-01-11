@@ -1,4 +1,4 @@
-package base
+package ginadapter
 
 import (
 	"github.com/brunojet/my-store-go/app/infra/http/contracts"
