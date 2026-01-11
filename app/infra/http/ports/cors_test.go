@@ -91,6 +91,9 @@ func TestBuildCORSHeaders_ExplicitOriginWithCredentials_Varies(t *testing.T) {
 	if h.ExposeHeaders != "x-out" {
 		t.Fatalf("unexpected ExposeHeaders: %q", h.ExposeHeaders)
 	}
+	if h.MaxAgeSeconds != 0 {
+		t.Fatalf("expected MaxAgeSeconds=0, got %d", h.MaxAgeSeconds)
+	}
 }
 
 func TestBuildCORSHeaders_DisallowedOrigin(t *testing.T) {
