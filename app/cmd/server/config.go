@@ -113,9 +113,9 @@ func httpParamsFromSource(src cfgcontracts.Source) http.HTTPParams {
 func databaseParamsFromSource(src cfgcontracts.Source) database.DatabaseParams {
 	driver := types.NormalizeDBDriver(cfgports.Trimmed(src, "DB_DRIVER"))
 
-	database := cfgports.Trimmed(src, "DB_NAME")
-	if database == "" {
-		database = cfgports.Trimmed(src, "DB_DATABASE")
+	dbName := cfgports.Trimmed(src, "DB_NAME")
+	if dbName == "" {
+		dbName = cfgports.Trimmed(src, "DB_DATABASE")
 	}
 
 	params := database.DatabaseParams{
@@ -123,7 +123,7 @@ func databaseParamsFromSource(src cfgcontracts.Source) database.DatabaseParams {
 		DSN:      cfgports.Trimmed(src, "DB_DSN"),
 		Host:     cfgports.Trimmed(src, "DB_HOST"),
 		Port:     cfgports.Int(src, "DB_PORT", 0),
-		Database: database,
+		Database: dbName,
 		Schema:   cfgports.Trimmed(src, "DB_SCHEMA"),
 		User:     cfgports.Trimmed(src, "DB_USER"),
 		Password: cfgports.Trimmed(src, "DB_PASSWORD"),
